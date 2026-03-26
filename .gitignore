@@ -1,0 +1,58 @@
+# Secrets and local config — never commit these
+.env
+.env.*
+!.env.example
+config/targets.yaml
+config/secrets.yaml
+*.pem
+*.key
+*.p12
+id_rsa*
+id_ed25519*
+known_hosts.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Node (if any tooling)
+node_modules/
+.npm/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Deployment artifacts
+deploy/tmp/
+deploy/logs/
+*.log
+
+# Test outputs
+tests/output/
+tests/reports/
+scenarios/*/output/

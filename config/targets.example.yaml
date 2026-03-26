@@ -1,0 +1,21 @@
+# Copy this file to config/targets.yaml (gitignored) and fill in your values.
+# Never commit targets.yaml — it may contain IPs, hostnames, or paths.
+
+targets:
+  my-oracle-vm:
+    host: 1.2.3.4            # VM IP or hostname
+    user: ubuntu             # SSH user (overrides SSH_USER env var)
+    ssh_key: ~/.ssh/id_ed25519  # SSH key path (overrides SSH_KEY_PATH env var)
+    remote_base: /opt/nemoclaw  # Directory on VM where scenarios are deployed
+    tags:
+      - oracle
+      - dev
+
+  prod-vm:
+    host: vm.example.internal
+    user: ubuntu
+    ssh_key: ~/.ssh/id_ed25519
+    remote_base: /opt/nemoclaw
+    tags:
+      - oracle
+      - prod

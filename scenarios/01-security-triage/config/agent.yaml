@@ -1,0 +1,29 @@
+# Agent configuration — non-secret values only.
+# Secrets (API keys, tokens) go in .env
+
+model:
+  provider: nvidia_nim        # nvidia_nim | openai | local
+  name: meta/llama-3.1-70b-instruct
+  temperature: 0.0            # Deterministic for triage decisions
+  max_tokens: 2048
+
+triage:
+  # Time window for correlating related alerts (seconds)
+  correlation_window_seconds: 300
+  # Minimum severity to process (1=low, 2=medium, 3=high, 4=critical)
+  min_severity: 1
+  # Auto-close alerts below this risk score (0-100)
+  auto_close_threshold: 20
+  # Escalate alerts above this risk score
+  escalation_threshold: 75
+
+enrichment:
+  # How many seconds to cache container metadata
+  metadata_cache_ttl: 60
+  mitre_attack_enabled: true
+  cve_lookup_enabled: false    # Enable when CVE service is available
+
+output:
+  format: json                 # json | text
+  include_reasoning: true      # Include agent reasoning in output
+  dry_run: false               # If true, decide but take no actions
