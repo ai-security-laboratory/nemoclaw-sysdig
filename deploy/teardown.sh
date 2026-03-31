@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# teardown.sh — Remove a deployed scenario from a target VM.
+# teardown.sh — Remove scenario data from the NemoClaw sandbox and staging area.
+#
+# This does NOT destroy the sandbox itself (use `nemoclaw <name> destroy` for that).
+# It removes the scenario files injected by deploy.sh so you can redeploy cleanly.
 #
 # Usage:
-#   ./deploy/teardown.sh --scenario 01-security-triage --target my-oracle-vm
+#   ./deploy/teardown.sh --scenario 01-it-ops --target oracle-vm
 
 set -euo pipefail
 
@@ -28,13 +31,29 @@ done
 [[ -n "${TARGET}" ]]   || die "TARGET is required."
 
 load_env "${REPO_ROOT}/.env"
-read_target "${REPO_ROOT}/config/targets.yaml" "${TARGET}"
+read_target "${REPO_ROOT}/../targets.yaml" "${TARGET}"
 
-REMOTE_DIR="${TARGET_REMOTE_BASE}/${SCENARIO}"
 SSH_OPTS="-i ${TARGET_SSH_KEY} -o StrictHostKeyChecking=no -o BatchMode=yes"
+STAGING_DIR="/tmp/nemoclaw-deploy/${SCENARIO}"
 
-warn "This will remove ${REMOTE_DIR} on ${TARGET} (${TARGET_HOST}). Press Ctrl+C to cancel."
+warn "This will remove /sandbox/${SCENARIO} from sandbox '${TARGET_SANDBOX_NAME}' on ${TARGET} (${TARGET_HOST})."
+warn "Press Ctrl+C to cancel."
 sleep 3
 
-ssh ${SSH_OPTS} "${TARGET_USER}@${TARGET_HOST}" "rm -rf ${REMOTE_DIR}"
-log "Teardown complete: ${SCENARIO} removed from ${TARGET}"
+# Remove scenario files from inside the sandbox via SSH ProxyCommand
+log "Removing /sandbox/${SCENARIO} from sandbox '${TARGET_SANDBOX_NAME}'..."
+ssh ${SSH_OPTS} "${TARGET_USER}@${TARGET_HOST}" \
+  "export PATH=\"\$HOME/.local/bin:\$PATH\"
+   ssh -o 'ProxyCommand \$HOME/.local/bin/openshell ssh-proxy --gateway-name nemoclaw --name ${TARGET_SANDBOX_NAME}' \
+       -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+       sandbox@${TARGET_SANDBOX_NAME} \
+       'rm -rf /sandbox/${SCENARIO}'" 2>/dev/null || warn "Could not remove from sandbox (may already be clean)"
+
+log "Removed /sandbox/${SCENARIO} from sandbox"
+
+# Remove staging dir on VM host
+ssh ${SSH_OPTS} "${TARGET_USER}@${TARGET_HOST}" "rm -rf ${STAGING_DIR}" 2>/dev/null || true
+log "Removed staging dir ${STAGING_DIR} on VM host"
+
+log "Teardown complete: '${SCENARIO}' removed from '${TARGET_SANDBOX_NAME}'"
+log "To destroy the sandbox entirely: ssh into the VM and run: nemoclaw ${TARGET_SANDBOX_NAME} destroy"

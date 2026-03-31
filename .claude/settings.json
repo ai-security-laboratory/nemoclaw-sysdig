@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(find /Users/manuel.boira/Sysdig/nvidia/NVIDIA-Oracle-VM/nemoclaw-sysdig -type f -exec ls -lh {})",
+      "Read(//Users/manuel.boira/Sysdig/nvidia/NVIDIA-Oracle-VM/nemoclaw-sysdig/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/manuel.boira/Sysdig/nvidia/NVIDIA-Oracle-VM/nemoclaw-sysdig/scenarios/01-it-ops/agent",
+      "/Users/manuel.boira/Sysdig/nvidia/NVIDIA-Oracle-VM"
+    ]
+  }
+}

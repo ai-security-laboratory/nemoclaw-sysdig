@@ -1,0 +1,105 @@
+{
+  "result": [
+    {
+      "sys_id": "ci001",
+      "name": "prod-db-01",
+      "sys_class_name": "cmdb_ci_linux_server",
+      "fqdn": "prod-db-01.internal.example.com",
+      "ip_address": "10.0.1.10",
+      "os": "Linux",
+      "os_version": "Ubuntu 22.04.3 LTS",
+      "cpu_count": 8,
+      "ram_gb": 64,
+      "disk_gb": 500,
+      "environment": "Production",
+      "operational_status": "1",
+      "install_status": "1",
+      "support_group": { "value": "grp001", "display_value": "IT Ops" },
+      "managed_by": { "value": "usr010", "display_value": "Maria Santos" },
+      "location": "Oracle Cloud — EU Frankfurt",
+      "short_description": "Primary PostgreSQL database server for the core application",
+      "attributes": {
+        "role": "database",
+        "db_engine": "PostgreSQL 15.4",
+        "replication": "primary",
+        "backup_schedule": "daily 02:30 UTC"
+      }
+    },
+    {
+      "sys_id": "ci002",
+      "name": "prod-web-01",
+      "sys_class_name": "cmdb_ci_linux_server",
+      "fqdn": "prod-web-01.internal.example.com",
+      "ip_address": "10.0.1.20",
+      "os": "Linux",
+      "os_version": "Ubuntu 22.04.3 LTS",
+      "cpu_count": 4,
+      "ram_gb": 16,
+      "disk_gb": 100,
+      "environment": "Production",
+      "operational_status": "1",
+      "install_status": "1",
+      "support_group": { "value": "grp001", "display_value": "IT Ops" },
+      "managed_by": { "value": "usr011", "display_value": "Carlos Ruiz" },
+      "location": "Oracle Cloud — EU Frankfurt",
+      "short_description": "nginx reverse proxy and static asset server",
+      "attributes": {
+        "role": "web",
+        "web_server": "nginx 1.24",
+        "upstream": "prod-api-01:8080",
+        "ssl_termination": true
+      }
+    },
+    {
+      "sys_id": "ci003",
+      "name": "prod-api-01",
+      "sys_class_name": "cmdb_ci_linux_server",
+      "fqdn": "prod-api-01.internal.example.com",
+      "ip_address": "10.0.1.30",
+      "os": "Linux",
+      "os_version": "Ubuntu 22.04.3 LTS",
+      "cpu_count": 8,
+      "ram_gb": 32,
+      "disk_gb": 200,
+      "environment": "Production",
+      "operational_status": "1",
+      "install_status": "1",
+      "support_group": { "value": "grp001", "display_value": "IT Ops" },
+      "managed_by": { "value": "usr010", "display_value": "Maria Santos" },
+      "location": "Oracle Cloud — EU Frankfurt",
+      "short_description": "Python FastAPI application server — core business logic",
+      "attributes": {
+        "role": "api",
+        "runtime": "Python 3.11 / FastAPI",
+        "service_port": 8080,
+        "db_host": "prod-db-01",
+        "log_path": "/var/log/app/application.log"
+      }
+    },
+    {
+      "sys_id": "ci004",
+      "name": "prod-cache-01",
+      "sys_class_name": "cmdb_ci_linux_server",
+      "fqdn": "prod-cache-01.internal.example.com",
+      "ip_address": "10.0.1.40",
+      "os": "Linux",
+      "os_version": "Ubuntu 22.04.3 LTS",
+      "cpu_count": 4,
+      "ram_gb": 32,
+      "disk_gb": 50,
+      "environment": "Production",
+      "operational_status": "1",
+      "install_status": "1",
+      "support_group": { "value": "grp001", "display_value": "IT Ops" },
+      "managed_by": { "value": "usr011", "display_value": "Carlos Ruiz" },
+      "location": "Oracle Cloud — EU Frankfurt",
+      "short_description": "Redis cache layer for session data and API response caching",
+      "attributes": {
+        "role": "cache",
+        "cache_engine": "Redis 7.2",
+        "persistence": "AOF",
+        "max_memory": "24gb"
+      }
+    }
+  ]
+}

@@ -1,47 +1,46 @@
-.PHONY: deploy teardown test lint fmt help
+.PHONY: deploy run tui ui teardown help
 
 SCENARIO ?=
-TARGET   ?=
+TARGET   ?= oracle-vm
 
 help:
-	@echo "Usage:"
-	@echo "  make deploy   SCENARIO=01-security-triage TARGET=my-oracle-vm"
-	@echo "  make teardown SCENARIO=01-security-triage TARGET=my-oracle-vm"
-	@echo "  make test     SCENARIO=01-security-triage [TARGET=my-oracle-vm]"
-	@echo "  make test-all"
-	@echo "  make lint"
-	@echo "  make fmt"
+	@echo "NemoClaw + Sysdig — scenario runner"
+	@echo ""
+	@echo "Full deploy (install + onboard + inject scenario):"
+	@echo "  ./deployment.sh --scenario 01-it-ops"
+	@echo ""
+	@echo "Scenario lifecycle:"
+	@echo "  make deploy   SCENARIO=01-it-ops TARGET=oracle-vm"
+	@echo "    Installs NemoClaw, creates sandbox if needed, injects scenario files."
+	@echo ""
+	@echo "  make run      SCENARIO=01-it-ops TARGET=oracle-vm"
+	@echo "    Sends the scenario prompt to the OpenClaw agent (task mode)."
+	@echo "    Output streams live to your terminal."
+	@echo ""
+	@echo "  make tui      SCENARIO=01-it-ops TARGET=oracle-vm"
+	@echo "    Opens the OpenClaw terminal UI inside the sandbox (interactive demo)."
+	@echo ""
+	@echo "  make ui       TARGET=oracle-vm"
+	@echo "    Forwards the OpenClaw web UI to localhost:18789 and opens browser."
+	@echo ""
+	@echo "  make teardown SCENARIO=01-it-ops TARGET=oracle-vm"
+	@echo "    Removes scenario files from the sandbox (keeps sandbox running)."
 
 deploy:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" && exit 1)
-	@test -n "$(TARGET)"   || (echo "TARGET is required" && exit 1)
-	bash deploy/deploy.sh --scenario $(SCENARIO) --target $(TARGET)
+	bash deployment.sh --scenario $(SCENARIO) --target $(TARGET)
+
+run:
+	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" && exit 1)
+	bash test.sh --scenario $(SCENARIO) --target $(TARGET)
+
+tui:
+	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" && exit 1)
+	bash test.sh --scenario $(SCENARIO) --target $(TARGET) --tui
+
+ui:
+	bash test.sh --ui --target $(TARGET)
 
 teardown:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" && exit 1)
-	@test -n "$(TARGET)"   || (echo "TARGET is required" && exit 1)
 	bash deploy/teardown.sh --scenario $(SCENARIO) --target $(TARGET)
-
-test:
-	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" && exit 1)
-	@if [ -n "$(TARGET)" ]; then \
-		echo "Running tests on remote VM $(TARGET)..."; \
-		bash deploy/lib/run-tests-remote.sh --scenario $(SCENARIO) --target $(TARGET); \
-	else \
-		echo "Running tests locally for scenario $(SCENARIO)..."; \
-		cd scenarios/$(SCENARIO) && python -m pytest tests/ -v; \
-	fi
-
-test-all:
-	@for dir in scenarios/*/; do \
-		scenario=$$(basename $$dir); \
-		echo "=== Testing $$scenario ==="; \
-		cd $$dir && python -m pytest tests/ -v; \
-		cd ../..; \
-	done
-
-lint:
-	python -m ruff check scenarios/ tests/
-
-fmt:
-	python -m ruff format scenarios/ tests/

@@ -1,0 +1,40 @@
+# Network policy addition for Sysdig API access.
+#
+# Scenario 01 (IT Ops baseline) does NOT require this policy —
+# the agent is fully self-contained and Sysdig observes it from outside.
+#
+# This file is a placeholder for future scenarios where the agent
+# will call the Sysdig Secure API directly (e.g. to query events,
+# enrich findings, or close alerts as part of a response workflow).
+#
+# To apply when needed:
+#   openshell policy set /sandbox/01-it-ops/policies/sysdig-api.yaml
+#
+# Reference: https://docs.nvidia.com/nemoclaw/latest/network-policy/customize-network-policy.html
+
+version: 1
+
+network_policies:
+  sysdig_secure:
+    name: sysdig_secure
+    endpoints:
+      - host: secure.sysdig.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: GET,  path: "/api/**" }
+          - allow: { method: POST, path: "/api/**" }
+      # EU tenant — adjust host to match your Sysdig region
+      - host: eu1.app.sysdig.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: GET,  path: "/api/**" }
+          - allow: { method: POST, path: "/api/**" }
+    binaries:
+      - { path: /usr/local/bin/openclaw }
+      - { path: /usr/bin/python3 }

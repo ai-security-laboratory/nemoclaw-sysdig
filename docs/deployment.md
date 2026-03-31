@@ -1,82 +1,104 @@
-# Deployment Guide
+# Deployment and Testing
 
-## Prerequisites
-
-On your local machine:
-- `yq` — YAML parser: `brew install yq`
-- `rsync` — file sync: usually pre-installed
-- SSH access to your target VMs
-
-On the target VM:
-- Python 3.11+
-- `rsync`
+Complete instructions from scratch.
 
 ---
 
-## 1. Configure local secrets
+## Prerequisites
+
+**Local machine:**
+- `yq`: `brew install yq`
+- `rsync`: pre-installed on macOS/Linux
+- SSH access to the Oracle VM
+
+**Oracle VM:**
+- Ubuntu 22.04 LTS, min 8 GB RAM, 20 GB free disk, internet access
+
+---
+
+## One-time setup
+
+### 1. Configure secrets
 
 ```bash
 cp config/env.example .env
 ```
 
-Edit `.env` with:
+Edit `.env` and fill in:
 - `NVIDIA_API_KEY` — from [build.nvidia.com](https://build.nvidia.com)
 - `SYSDIG_SECURE_TOKEN` — from Sysdig Secure → Settings → API Tokens
-- `SYSDIG_URL` — your Sysdig tenant URL
 
----
+### 2. Configure the target VM
 
-## 2. Configure target VMs
+`../targets.yaml` lives outside the repo, next to your SSH key. Verify it looks like this:
 
-```bash
-cp config/targets.example.yaml config/targets.yaml
-```
-
-Edit `config/targets.yaml` with your VM's IP, SSH user, and key path. File is gitignored.
-
----
-
-## 3. Deploy
-
-```bash
-make deploy SCENARIO=01-security-triage TARGET=my-oracle-vm
-```
-
-This will:
-1. `rsync` the scenario files to `/opt/nemoclaw/01-security-triage/` on the VM
-2. Upload `.env` over SCP
-3. Run `setup.sh` remotely (creates Python venv, installs deps)
-
----
-
-## 4. Run tests
-
-**Locally (unit tests, no credentials):**
-```bash
-make test SCENARIO=01-security-triage
-```
-
-**Remotely (integration tests on the VM):**
-```bash
-make test SCENARIO=01-security-triage TARGET=my-oracle-vm
+```yaml
+targets:
+  oracle-vm:
+    host: <vm-ip>
+    user: ubuntu
+    ssh_key: ~/path/to/your.key
+    remote_base: /opt/nemoclaw
+    sandbox_name: openclaw
+    provider: build
+    model: nvidia/llama-3.3-nemotron-super-49b-v1
 ```
 
 ---
 
-## 5. Teardown
+## Deploy
+
+A single command does everything — installs NemoClaw, creates the sandbox (if needed), and deploys the scenario:
 
 ```bash
-make teardown SCENARIO=01-security-triage TARGET=my-oracle-vm
+./deployment.sh --scenario 01-it-ops
 ```
 
-Removes `/opt/nemoclaw/01-security-triage` from the VM. Prompts for confirmation.
+All steps are **idempotent** — safe to run multiple times. The sandbox is only created on the first run; subsequent runs skip straight to deploying the scenario.
+
+What it does internally:
+1. Installs Node.js 22, Docker, and the NemoClaw CLI on the VM over SSH
+2. Creates the NemoClaw sandbox (skipped if it already exists)
+3. Injects the scenario data, prompt, and network policies into the sandbox
 
 ---
 
-## SSH key setup
+## Run
 
-The deploy scripts use the SSH key specified in `config/targets.yaml` (falls back to `SSH_KEY_PATH` env var). Make sure the public key is in `~/.ssh/authorized_keys` on the VM.
+**Task mode** — agent works autonomously, output streams to your terminal:
+```bash
+./test.sh --scenario 01-it-ops
+```
+
+**TUI mode** — opens the OpenClaw terminal inside the sandbox (recommended for demos):
+```bash
+./test.sh --scenario 01-it-ops --tui
+```
+
+**Web UI** — forwards the OpenClaw dashboard to your local browser:
+```bash
+./test.sh --ui
+```
+
+Press `Ctrl+C` to exit and return to your laptop. The sandbox keeps running.
+
+---
+
+## Reset between runs
 
 ```bash
-ssh-copy-id -i ~/.ssh/id_ed25519.pub ubuntu@<vm-ip>
+make teardown SCENARIO=01-it-ops TARGET=oracle-vm
+./deployment.sh --scenario 01-it-ops
+```
+
+---
+
+## Sandbox management (on the VM)
+
+```bash
+nemoclaw list                    # list sandboxes
+nemoclaw openclaw status         # health + inference config
+nemoclaw openclaw logs --follow  # live logs
+nemoclaw openclaw connect        # open a shell inside the sandbox
+nemoclaw openclaw destroy        # permanently delete the sandbox
 ```

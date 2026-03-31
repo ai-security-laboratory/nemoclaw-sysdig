@@ -7,8 +7,12 @@ config/secrets.yaml
 *.pem
 *.key
 *.p12
+*.crt
+*.cer
+*.pfx
 id_rsa*
 id_ed25519*
+id_ecdsa*
 known_hosts.local
 
 # Python
