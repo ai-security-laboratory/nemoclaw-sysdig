@@ -1,0 +1,12 @@
+# Network policy addition for Scenario 03
+# Allows the agent to reach the Sysdig API (future integration use).
+# No additional egress is needed for this scenario.
+name: sysdig-api
+description: Allow outbound HTTPS to Sysdig Secure API
+rules:
+  - name: allow-sysdig-secure
+    direction: egress
+    action: allow
+    destination:
+      host: "*.sysdig.com"
+      port: 443

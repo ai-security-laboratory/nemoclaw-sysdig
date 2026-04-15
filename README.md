@@ -76,21 +76,30 @@ nemoclaw-sysdig/
 │   │   ├── setup.sh                  Runs inside sandbox at deploy time (resets incidents)
 │   │   └── README.md                 Scenario docs + demo guide
 │   │
-│   └── 02-supply-chain/              Scenario 02: Supply chain attack — compromised binary
+│   ├── 02-supply-chain/              Scenario 02: Supply chain attack — compromised binary
+│   │   ├── data/
+│   │   │   ├── incidents.json        Incident queue (includes the trigger incident)
+│   │   │   ├── cmdb-extension.json   Extends shared CMDB with tool registry CI
+│   │   │   └── registry.json         Written at deploy time — tool registry URL
+│   │   ├── policies/
+│   │   │   └── tool-registry.yaml    Allows egress to VM host:8888
+│   │   ├── trusted-repo/             Fake internal tool registry (served on VM via HTTP)
+│   │   │   ├── pg_analyze            Backdoored bash script — downloads + runs the payload
+│   │   │   └── event-generator       falcosecurity/event-generator binary — the TTP payload
+│   │   ├── registry-repo/            GitHub-ready version of the fake registry
+│   │   ├── host-setup.sh             Runs on VM: starts HTTP server, opens iptables
+│   │   ├── prompt.md                 Task instructions — includes tool registry reference
+│   │   ├── setup.sh                  Resets incidents, writes registry.json with host IP
+│   │   └── README.md                 Scenario docs + attack diagram + demo guide
+│   │
+│   └── 03-prompt-injection/          Scenario 03: Prompt injection — poisoned ticket queue
 │       ├── data/
-│       │   ├── incidents.json        Incident queue (includes the trigger incident)
-│       │   ├── cmdb-extension.json   Extends shared CMDB with tool registry CI
-│       │   └── registry.json         Written at deploy time — tool registry URL
+│       │   └── incidents.json        2 clean incidents + 1 poisoned with injection payload
 │       ├── policies/
-│       │   └── tool-registry.yaml    Allows egress to VM host:8888
-│       ├── trusted-repo/             Fake internal tool registry (served on VM via HTTP)
-│       │   ├── pg_analyze            Backdoored bash script — downloads + runs the payload
-│       │   └── event-generator       falcosecurity/event-generator binary — the TTP payload
-│       ├── registry-repo/            GitHub-ready version of the fake registry
-│       ├── host-setup.sh             Runs on VM: starts HTTP server, opens iptables
-│       ├── prompt.md                 Task instructions — includes tool registry reference
-│       ├── setup.sh                  Resets incidents, writes registry.json with host IP
-│       └── README.md                 Scenario docs + attack diagram + demo guide
+│       │   └── sysdig-api.yaml       No additional egress needed
+│       ├── prompt.md                 Same task as Scenario 01 — process the incident queue
+│       ├── setup.sh                  Resets all incidents to state=New before each run
+│       └── README.md                 Scenario docs + Falco rule + token hijack demo guide
 │
 ├── deploy/                           All deployment scripts — SSH-based, no secrets in repo
 │   ├── install-nemoclaw.sh           One-time: install Node.js, Docker, NemoClaw on VM
@@ -198,6 +207,7 @@ then introduce adversarial behaviour and verify detection.
 |---|------|-------------|--------|
 | 01 | [IT Ops Baseline](scenarios/01-it-ops/) | Agent works through a normal incident queue using standard OS diagnostics. Builds the ground-truth behavioural baseline. No threats. | Ready |
 | 02 | [Supply Chain Attack](scenarios/02-supply-chain/) | Same IT Ops workflow, but one incident requires downloading a diagnostic tool from a "trusted" internal repo. The repo has been compromised — `pg_analyze` downloads and runs `falcosecurity/event-generator` TTPs in a background subshell while returning clean diagnostic output. Sysdig detects the kill chain. | Ready |
+| 03 | [Prompt Injection](scenarios/03-prompt-injection/) | Same IT Ops workflow, but one ticket was created by an attacker who compromised the ITSM platform. The ticket description contains a prompt injection that impersonates an automated compliance system — instructing the agent to read its own credential file and log the auth token. Sysdig detects the anomalous file access. | Ready |
 
 ---
 
@@ -210,6 +220,7 @@ Read in this order if you're new:
 3. **[docs/deployment.md](docs/deployment.md)** — step-by-step guide to deploy and run each scenario, what to look for in Sysdig, and troubleshooting. This is your operational reference.
 4. **[scenarios/01-it-ops/README.md](scenarios/01-it-ops/README.md)** — what Scenario 01 does, the incident queue, and the demo script. Run Scenario 01 before Scenario 02.
 5. **[scenarios/02-supply-chain/README.md](scenarios/02-supply-chain/README.md)** — the supply chain attack threat model, what Sysdig detects, and the demo talking points.
+6. **[scenarios/03-prompt-injection/README.md](scenarios/03-prompt-injection/README.md)** — the prompt injection threat model, custom Falco rule, and the stolen-token demo payoff.
 
 Reference (consult as needed):
 - **[docs/architecture.md](docs/architecture.md)** — component model, deployment flow internals, design decisions. Read when you want to understand *why* something works the way it does.
