@@ -47,8 +47,18 @@ if [[ "${TUI_MODE}" == "true" ]]; then
   log "Opening OpenClaw TUI in sandbox '${TARGET_SANDBOX_NAME}' on ${TARGET} (${TARGET_HOST})"
   log "Press Ctrl+C to return to your laptop."
   log ""
+  SANDBOX_PROMPT_PATH="/sandbox/${SCENARIO}/prompt.md"
   ssh -t ${SSH_OPTS} "${TARGET_USER}@${TARGET_HOST}" \
-    "export PATH=\"\$HOME/.local/bin:\$PATH\"; nemoclaw ${TARGET_SANDBOX_NAME} connect"
+    "export PATH=\"\$HOME/.local/bin:\$PATH\"
+     ssh -t \
+         -o 'ProxyCommand \$HOME/.local/bin/openshell ssh-proxy --gateway-name nemoclaw --name ${TARGET_SANDBOX_NAME}' \
+         -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+         sandbox@${TARGET_SANDBOX_NAME} \
+         'rm -f ~/.openclaw/agents/main/sessions/*.jsonl ~/.openclaw/agents/main/sessions/sessions.json
+          MSG=\$(cat ${SANDBOX_PROMPT_PATH})
+          openclaw agent --agent main --session-id main -m \"\$MSG\" > /tmp/openclaw-tui-run.log 2>&1 &
+          sleep 1
+          openclaw tui'"
   exit 0
 fi
 
@@ -66,26 +76,36 @@ log ""
 log "  Tailing gateway log (live)... Ctrl+C to stop."
 log "  ─────────────────────────────────────────────"
 
-# Run agent and tail gateway log in parallel
-ssh -t ${SSH_OPTS} "${TARGET_USER}@${TARGET_HOST}" \
+# Task mode: no -t flag (PTY breaks heredoc piping to inner sandbox SSH)
+ssh ${SSH_OPTS} "${TARGET_USER}@${TARGET_HOST}" \
   "export PATH=\"\$HOME/.local/bin:\$PATH\"
    ${SANDBOX_SSH} bash << 'SANDBOX'
+# Clear session history so the agent starts fresh (avoids context bloat from prior runs)
+rm -f ~/.openclaw/agents/main/sessions/*.jsonl ~/.openclaw/agents/main/sessions/sessions.json 2>/dev/null || true
+
 # Tail gateway log in background so we see live progress (only new lines)
 tail -n 0 -f /tmp/openclaw/\$(ls -t /tmp/openclaw/ 2>/dev/null | head -1) 2>/dev/null &
 TAIL_PID=\$!
 
 # Run agent — gateway connects to inference.local via OpenShell NIM proxy
 MSG=\$(cat ${SANDBOX_PROMPT_PATH})
-RESULT=\$(openclaw agent --agent main --session-id '${SESSION_ID}' --json -m \"\$MSG\" 2>/dev/null)
+RESULT=\$(openclaw agent --agent main --session-id '${SESSION_ID}' --json -m \"\$MSG\" 2>&1)
 
 kill \$TAIL_PID 2>/dev/null
+
+# Parse JSON response; fall back to raw output if not JSON
 echo \"\$RESULT\" | python3 -c \"
 import sys, json
+raw = sys.stdin.read()
 try:
-    d = json.load(sys.stdin)
-    for p in d.get('result',{}).get('payloads',[]):
-        print(p.get('text',''))
-except:
-    print(sys.stdin.read())
+    d = json.loads(raw)
+    payloads = d.get('result', {}).get('payloads', [])
+    if payloads:
+        for p in payloads:
+            print(p.get('text', ''))
+    else:
+        print(raw)
+except Exception:
+    print(raw)
 \"
 SANDBOX"

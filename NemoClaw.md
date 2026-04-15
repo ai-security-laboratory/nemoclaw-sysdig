@@ -1,5 +1,7 @@
 # NVIDIA NemoClaw — Quick Reference
 
+> **Reading order:** Start with [README.md](README.md) for the overview and component definitions, then read this file before running anything.
+
 NemoClaw is the upstream NVIDIA open-source project this framework is built on.
 
 - **Repo:** https://github.com/NVIDIA/NemoClaw

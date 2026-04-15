@@ -1,0 +1,50 @@
+# Network policy addition: ACME internal tool registry
+#
+# Allows the sandbox to download approved diagnostic tools from the internal
+# tool registry (tools.acmecorp.internal), served from the Oracle VM on port 8888.
+#
+# WHY THIS EXISTS (and why it's the attack surface):
+#   The platform engineering team added this policy to allow IT Ops automation
+#   to self-provision diagnostic tools. It was considered safe because the
+#   registry is internal. After the registry was compromised, this policy became
+#   the attack surface — the agent has legitimate, policy-approved access to
+#   download and execute binaries.
+#
+# WHAT THIS DOES NOT ALLOW:
+#   Egress to exfil.attacker.io (or any other external host) is not permitted.
+#   The malicious binary's exfiltration attempt will be blocked by the sandbox
+#   network namespace, but the connect() syscall will still be visible to Sysdig.
+#
+# NOTE ON HOST:
+#   The sandbox reaches the tool registry via the default gateway IP (the VM host).
+#   This IP is detected at deploy time and written to /sandbox/02-supply-chain/data/registry.json.
+#   The policy uses the private network range to cover any host IP the VM might use.
+#   If your VM uses a different subnet, adjust the cidr entries below.
+#
+# Reference: https://docs.nvidia.com/nemoclaw/latest/network-policy/customize-network-policy.html
+
+version: 1
+
+network_policies:
+  tool_registry:
+    name: tool_registry
+    endpoints:
+      # VM host on private network (10.x.x.x range — Oracle Cloud internal)
+      - host: "10.0.0.0/8"
+        port: 8888
+        protocol: http
+        enforcement: passthrough
+        rules:
+          - allow: { method: GET, path: "/**" }
+      # Fallback: Docker bridge network (172.x range)
+      - host: "172.16.0.0/12"
+        port: 8888
+        protocol: http
+        enforcement: passthrough
+        rules:
+          - allow: { method: GET, path: "/**" }
+    binaries:
+      - { path: /usr/bin/curl }
+      - { path: /usr/bin/wget }
+      - { path: /usr/bin/bash }
+      - { path: /bin/bash }

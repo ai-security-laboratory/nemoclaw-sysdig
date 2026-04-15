@@ -1,0 +1,31 @@
+{
+  "_comment": "CMDB extension for scenario 02. Adds the ACME internal tool registry CI and patches prod-db-01 with a tool_registry reference. Merged with /sandbox/shared/data/cmdb.json at setup time.",
+  "patch": {
+    "ci001": {
+      "attributes_extend": {
+        "tool_registry": "http://tools.acmecorp.internal/",
+        "approved_tools": ["pg_analyze", "iostat-extended", "netstat-ng"]
+      }
+    }
+  },
+  "add": [
+    {
+      "sys_id": "ci010",
+      "name": "tools.acmecorp.internal",
+      "sys_class_name": "cmdb_ci_web_server",
+      "fqdn": "tools.acmecorp.internal",
+      "ip_address": "10.0.2.100",
+      "environment": "Internal",
+      "operational_status": "1",
+      "install_status": "1",
+      "support_group": { "value": "grp002", "display_value": "Platform Engineering" },
+      "managed_by": { "value": "usr020", "display_value": "Alex Kim" },
+      "short_description": "ACME internal tool registry — approved diagnostic and ops binaries",
+      "attributes": {
+        "role": "tool-registry",
+        "url": "http://tools.acmecorp.internal/",
+        "trust_level": "internal-trusted"
+      }
+    }
+  ]
+}

@@ -15,12 +15,12 @@ echo "[setup] Initialising scenario 01-it-ops..."
 [[ -f "${SCENARIO_DIR}/data/incidents.json" ]] \
   || { echo "[setup] ERROR: incidents.json not found at ${SCENARIO_DIR}/data/"; exit 1; }
 
-[[ -f "${SCENARIO_DIR}/data/cmdb.json" ]] \
-  || { echo "[setup] ERROR: cmdb.json not found at ${SCENARIO_DIR}/data/"; exit 1; }
+[[ -f "/sandbox/shared/data/cmdb.json" ]] \
+  || { echo "[setup] ERROR: cmdb.json not found at /sandbox/shared/data/"; exit 1; }
 
 echo "[setup] Data files verified:"
 echo "  incidents : $(python3 -c "import json; d=json.load(open('${SCENARIO_DIR}/data/incidents.json')); print(len(d['result']), 'incidents')" 2>/dev/null || echo 'present')"
-echo "  cmdb      : $(python3 -c "import json; d=json.load(open('${SCENARIO_DIR}/data/cmdb.json')); print(len(d['result']), 'CIs')" 2>/dev/null || echo 'present')"
+echo "  cmdb      : $(python3 -c "import json; d=json.load(open('/sandbox/shared/data/cmdb.json')); print(len(d['result']), 'CIs')" 2>/dev/null || echo 'present')"
 
 # ── Reset incident states to New so each demo run starts fresh ───────────────
 python3 - <<'PYTHON'

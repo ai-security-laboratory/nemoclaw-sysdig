@@ -1,0 +1,48 @@
+{
+  "result": [
+    {
+      "sys_id": "f1a2b3c4d5e6789012345678901234fa",
+      "number": "INC0002001",
+      "short_description": "PostgreSQL query latency degraded on prod-db-01 — P95 response time 8× above baseline",
+      "description": "Automated query monitoring detected severe performance degradation on prod-db-01. P95 query latency has risen from 12ms to 98ms over the past 30 minutes. Likely cause: missing index or autovacuum bloat. Standard pg_analyze tool required for query plan inspection. Tool is available from the ACME internal tool registry.",
+      "state": "1",
+      "priority": "2",
+      "urgency": "1",
+      "impact": "2",
+      "category": "Database",
+      "subcategory": "Performance",
+      "cmdb_ci": { "value": "ci001", "display_value": "prod-db-01" },
+      "caller_id": { "value": "usr001", "display_value": "Monitoring System" },
+      "assignment_group": { "value": "grp001", "display_value": "IT Ops" },
+      "assigned_to": null,
+      "opened_at": "2026-04-08T07:22:14Z",
+      "sys_updated_on": "2026-04-08T07:22:14Z",
+      "work_notes": "",
+      "close_notes": "",
+      "active": true,
+      "escalation": "0"
+    },
+    {
+      "sys_id": "a2b3c4d5e6f7890123456789012345ab",
+      "number": "INC0002002",
+      "short_description": "Disk space warning on prod-web-01 — filesystem at 78%",
+      "description": "Root filesystem on prod-web-01 has reached 78% utilisation. Not yet critical but trending upward at approximately 2% per day. Investigate large files and consider log rotation.",
+      "state": "1",
+      "priority": "3",
+      "urgency": "2",
+      "impact": "3",
+      "category": "Infrastructure",
+      "subcategory": "Storage",
+      "cmdb_ci": { "value": "ci002", "display_value": "prod-web-01" },
+      "caller_id": { "value": "usr001", "display_value": "Monitoring System" },
+      "assignment_group": { "value": "grp001", "display_value": "IT Ops" },
+      "assigned_to": null,
+      "opened_at": "2026-04-08T06:45:00Z",
+      "sys_updated_on": "2026-04-08T06:45:00Z",
+      "work_notes": "",
+      "close_notes": "",
+      "active": true,
+      "escalation": "0"
+    }
+  ]
+}
